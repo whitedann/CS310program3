@@ -209,64 +209,86 @@ public class DirectedGraph<V> implements IGraph<V>{
     }
 
     @Override
-    // TODO This needs work try: Map<V, List<V>> neighbors
     public List<V> shortestPath(V start, V destination) {
+        Vertex src = new Vertex(start);
+        Vertex dest = new Vertex(destination);
+        if(!this.vertices.contains(src))
+            throw new NoSuchElementException("Source not found");
+        if(!this.vertices.contains(dest))
+            throw new NoSuchElementException("Destination not found");
 
         /** Create a list of unvisited nodes **/
-        List<Vertex> unvisitedNodes = new LinkedList<>(this.vertices);
+        List<V> unvisitedNodes = new LinkedList<>();
+        for(Vertex e : this.vertices){
+            unvisitedNodes.add(e.id);
+        }
+
+        /** Initialize the list of nodes to return **/
         List<V> vistedNodes = new LinkedList<>();
-        Vertex src = new Vertex(start);
+        HashMap<V, V> previousVerticies = new HashMap<>();
 
         /** Initialize distances from start Map **/
         TreeMap<V, Integer> distances = new TreeMap<>();
-        for(Vertex e : unvisitedNodes) {
-            if(!e.equals(src))
-                distances.put(e.id, -1);
+        for(V id : unvisitedNodes) {
+            if(!id.equals(start))
+                distances.put(id, Integer.MAX_VALUE);
+            previousVerticies.put(id, null);
         }
-        distances.put(src.id, 0);
+        distances.put(start, 0);
 
         /** Generate neighbors map **/
-        HashMap<Vertex, List<Vertex>> neighborsMap = generateNeighborsMap();
+        HashMap<V, List<V>> neighborsMap = generateNeighborsMap();
 
         /** Loop **/
+        V closest = start;
         while(!unvisitedNodes.isEmpty()){
             /** Finds closest unvisited node **/
             int minimumDist = Integer.MAX_VALUE;
-            Vertex closetNode = null;
-            for(Vertex node : unvisitedNodes){
-                if(distances.get(node.id) < minimumDist && distances.get(node.id) >= 0){
-                    minimumDist = distances.get(node.id);
-                    System.out.println(minimumDist);
-                    closetNode = node;
+            for(V id : unvisitedNodes){
+                int distance = distances.get(id);
+                if(distance <= minimumDist){
+                    minimumDist = distance;
+                    closest = id;
                 }
             }
+
             /** Examine this node's unvisited neighbor and add to length **/
-            /**
-            for(Vertex neighbor : neighborsMap.get(closetNode)){
+            for(V neighbor : neighborsMap.get(closest)){
                 if(unvisitedNodes.contains(neighbor)){
-                    int newDistance = distances.get(neighbor) + 1;
-                    distances.remove(neighbor);
-                    distances.put(neighbor.id, newDistance);
+                    int distanceFromStart;
+                    if(distances.get(closest) == Integer.MAX_VALUE)
+                        distanceFromStart = 1;
+                    else
+                        distanceFromStart = distances.get(closest) + 1;
+                    if(distanceFromStart < distances.get(neighbor)){
+                        previousVerticies.put(neighbor, closest);
+                        distances.remove(neighbor);
+                        distances.put(neighbor, distanceFromStart);
+
+                    }
                 }
              }
-             **/
-            unvisitedNodes.remove(closetNode);
+            unvisitedNodes.remove(closest);
         }
+        V toPutIntoFinalList = destination;
+        while(toPutIntoFinalList != start){
+            vistedNodes.add(toPutIntoFinalList);
+            toPutIntoFinalList = previousVerticies.get(toPutIntoFinalList);
+        }
+        vistedNodes.add(start);
+        Collections.reverse(vistedNodes);
         return vistedNodes;
     }
 
-
-
-
-    public HashMap<Vertex, List<Vertex>> generateNeighborsMap(){
-        HashMap<Vertex, List<Vertex>> neighborsMap = new HashMap<>();
+    public HashMap<V, List<V>> generateNeighborsMap(){
+        HashMap<V, List<V>> neighborsMap = new HashMap<>();
         for(Vertex e : this.vertices){
-            List<Vertex> neighbors = new LinkedList<>();
+            List<V> neighbors = new LinkedList<>();
             for(Edge k : this.edges){
                 if(k.source.compareTo(e) == 0)
-                    neighbors.add(k.destination);
+                    neighbors.add(k.destination.id);
             }
-            neighborsMap.put(e, neighbors);
+            neighborsMap.put(e.id, neighbors);
         }
         return neighborsMap;
     }
@@ -289,6 +311,8 @@ public class DirectedGraph<V> implements IGraph<V>{
             if(isConnected(origin, e.id))
                 toReturn.add(e.id);
         }
+        toReturn.add(origin);
+        System.out.println(toReturn.vertices());
         return toReturn;
     }
 

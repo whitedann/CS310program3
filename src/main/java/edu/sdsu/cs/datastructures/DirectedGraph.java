@@ -1,3 +1,6 @@
+/** Daniel White (CSSC0721) Mario Shamhon (CSSC0781) **/
+/** CS310 Fall 2018, Shawn Healey **/
+
 package edu.sdsu.cs.datastructures;
 
 import java.util.*;
@@ -14,7 +17,8 @@ public class DirectedGraph<V> implements IGraph<V>{
             this.id = id;
         }
 
-        /** Help from http://www.vogella.com/tutorials/JavaAlgorithmsDijkstra/article.html **/
+        /** Help from http://www.vogella.com/tutorials/
+         * JavaAlgorithmsDijkstra/article.html **/
         @Override
         public boolean equals(Object O){
             if(this == O) {
@@ -68,8 +72,10 @@ public class DirectedGraph<V> implements IGraph<V>{
                 if(toCheck.source.id != null)
                     return false;
             }
-            else if(!this.source.id.equals(toCheck.source.id)) return false;
-            else if(!this.destination.id.equals(toCheck.destination.id)) return false;
+            else if(!this.source.id.equals(toCheck.source.id))
+                return false;
+            else if(!this.destination.id.equals(toCheck.destination.id))
+                return false;
             return true;
         }
 
@@ -78,7 +84,8 @@ public class DirectedGraph<V> implements IGraph<V>{
         }
 
         public String toString(){
-            return this.source.toString() + " leads to " + this.destination.toString() + " weight: " + this.weight;
+            return this.source.toString() + " leads to " +
+                    this.destination.toString() + " weight: " + this.weight;
         }
     }
 
@@ -141,18 +148,6 @@ public class DirectedGraph<V> implements IGraph<V>{
             start.toString() + " and " + destination.toString());
     }
 
-    public void printEdges(){
-        for(Edge e : this.edges){
-            System.out.println(e.toString());
-        }
-    }
-
-    public void printVerticies(){
-        for(Vertex e : this.vertices){
-            System.out.println(e.toString());
-        }
-    }
-
     @Override
     public boolean isConnected(V start, V destination) {
         List<Vertex> toCheck = new LinkedList<>();
@@ -160,11 +155,14 @@ public class DirectedGraph<V> implements IGraph<V>{
         Vertex src = new Vertex(start);
         Vertex dest = new Vertex(destination);
         if(!this.vertices.contains(src))
-            throw new NoSuchElementException("The source node does not exist in the graph");
+            throw new NoSuchElementException(
+                    "The source node does not exist in the graph");
         if(!this.vertices.contains(dest))
-            throw new NoSuchElementException("The destination node does not exist in the graph");
+            throw new NoSuchElementException(
+                    "The destination node does not exist in the graph");
 
-        /** https://stackoverflow.com/questions/354330/how-to-determine-if-two-nodes-are-connected **/
+        /** https://stackoverflow.com/questions/
+         * 354330/how-to-determine-if-two-nodes-are-connected **/
         toCheck.add(src);
         while(!toCheck.isEmpty()){
             Vertex currentVertex = toCheck.remove(0);
@@ -198,7 +196,8 @@ public class DirectedGraph<V> implements IGraph<V>{
     public void remove(V vertexName) {
         Vertex toRemove = new Vertex(vertexName);
         if(!this.vertices.contains(toRemove))
-            throw new NoSuchElementException("That node isn't present in the graph");
+            throw new NoSuchElementException(
+                    "That node isn't present in the graph");
         Iterator<Edge> iter = this.edges.iterator();
         while(iter.hasNext()){
             Edge e = iter.next();
@@ -271,9 +270,11 @@ public class DirectedGraph<V> implements IGraph<V>{
             unvisitedNodes.remove(closest);
         }
         V toPutIntoFinalList = destination;
-        while(toPutIntoFinalList != start){
+        while(!toPutIntoFinalList.equals(start)){
             vistedNodes.add(toPutIntoFinalList);
             toPutIntoFinalList = previousVerticies.get(toPutIntoFinalList);
+            if(toPutIntoFinalList == null)
+                return vistedNodes;
         }
         vistedNodes.add(start);
         Collections.reverse(vistedNodes);
@@ -303,17 +304,35 @@ public class DirectedGraph<V> implements IGraph<V>{
         return (Iterable<V>) this.vertices;
     }
 
-    //TODO This needs work
     @Override
     public IGraph<V> connectedGraph(V origin){
         IGraph<V> toReturn = new DirectedGraph();
+        toReturn.add(origin);
         for(Vertex e : this.vertices){
             if(isConnected(origin, e.id))
                 toReturn.add(e.id);
         }
-        toReturn.add(origin);
-        System.out.println(toReturn.vertices());
+        for(Edge e : this.edges){
+            if(toReturn.contains(e.source.id)
+                    && toReturn.contains(e.destination.id))
+                toReturn.connect(e.source.id, e.destination.id);
+        }
         return toReturn;
+    }
+
+    @Override
+    public String toString(){
+        String output = "";
+        for(Vertex e : this.vertices) {
+            output += String.format("Vertex: " + e.toString());
+            output += String.format("\nNeighbors: ");
+            for(V neightbor : this.neighbors(e.id)) {
+                String toAdd = neightbor.toString();
+                output += String.format(toAdd + ", ");
+            }
+            output += "\n\n";
+        }
+        return output;
     }
 
 }
